@@ -4,6 +4,7 @@ import subprocess
 import shutil
 import zipfile
 from urllib.request import urlretrieve
+import runpy
 
 # Directory to persistently store Python packages
 PACKAGES_DIR = os.path.join(os.path.dirname(__file__), 'packages')
@@ -79,8 +80,9 @@ def install_java():
 
 
 def run_main():
+    """Run the main application using the current Python interpreter."""
     exec_path = os.path.join(os.path.dirname(__file__), 'main.py')
-    subprocess.run([sys.executable, exec_path])
+    runpy.run_path(exec_path, run_name="__main__")
 
 
 if __name__ == '__main__':
