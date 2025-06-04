@@ -5,6 +5,13 @@ import shutil
 import zipfile
 from urllib.request import urlretrieve
 
+# Directory to persistently store Python packages
+PACKAGES_DIR = os.path.join(os.path.dirname(__file__), 'packages')
+
+# Ensure persistent packages directory is on sys.path
+if os.path.isdir(PACKAGES_DIR) and PACKAGES_DIR not in sys.path:
+    sys.path.append(PACKAGES_DIR)
+
 # Required Python packages
 REQUIRED_PACKAGES = [
     'tabula-py',
@@ -27,12 +34,28 @@ def is_command_available(cmd):
 
 
 def install_packages():
+    """Ensure all required packages are installed in PACKAGES_DIR."""
+    os.makedirs(PACKAGES_DIR, exist_ok=True)
+    if PACKAGES_DIR not in sys.path:
+        sys.path.append(PACKAGES_DIR)
     for package in REQUIRED_PACKAGES:
         try:
             __import__(package.split('-')[0])
         except ImportError:
             print(f"Installing missing package: {package}")
-            subprocess.check_call([sys.executable, '-m', 'pip', 'install', package])
+            try:
+                subprocess.check_call([
+                    sys.executable,
+                    '-m',
+                    'pip',
+                    'install',
+                    '--upgrade',
+                    '--target', PACKAGES_DIR,
+                    package,
+                ])
+            except subprocess.CalledProcessError as e:
+                print(f"Failed to install {package}: {e}")
+                sys.exit(1)
 
 
 def install_java():
